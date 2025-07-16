@@ -28,7 +28,11 @@ SELECT
     left(sys_article.village_code,9) AS "行政区划码", 
     pt_pro_cq_type.name AS "项目类别", 
     sum(sys_article.amount) AS "成交金额",
-    sum((SELECT count(pt_pro_tenders.pro_id) from pt_pro_tenders WHERE pt_pro_tenders.pro_id=sys_article.pro_id AND pt_pro_tenders.status <> 0 AND pt_pro_tenders.status<> 12)) AS "成交笔数"
+    sum((SELECT count(pt_pro_tenders.pro_id) 
+     from pt_pro_tenders 
+     WHERE pt_pro_tenders.pro_id=sys_article.pro_id AND 
+        pt_pro_tenders.status NOT IN (0,12) AND 
+        pt_pro_tenders.loss_tenders_reason is NULL)) AS "成交笔数"
 FROM
     sys_article
     LEFT JOIN
