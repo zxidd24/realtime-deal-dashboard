@@ -238,7 +238,6 @@ function showDistrictStreets(districtName) {
 function returnToDistrictView() {
   currentView = 'districts';
   selectedDistrict = null;
-  //重设主视图
   if (districtOption && districtOption.title) {
     districtOption.title = {
       text: '西安市区地图',

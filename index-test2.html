@@ -380,58 +380,58 @@
         </div>
 
         <!-- ECharts地图卡片 -->
+        <div class="stats-cards" id="stats-cards" style="display: none;">
+            <div class="stat-card">
+                <i class="fas fa-list card-total"></i>
+                <div class="stat-value" id="total-records">0</div>
+                <div class="stat-label">总记录数</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-tags card-categories"></i>
+                <div class="stat-value" id="total-categories">0</div>
+                <div class="stat-label">项目类别</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-yen-sign card-amount"></i>
+                <div class="stat-value" id="total-amount">0</div>
+                <div class="stat-label">总成交金额(万元)</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-handshake card-count"></i>
+                <div class="stat-value" id="total-count">0</div>
+                <div class="stat-label">总成交笔数</div>
+            </div>
+        </div>
         <div class="echarts-card">
             <div id="echarts-map"></div>
         </div>
 
         <div class="table-container">
-            <div class="stats-cards" id="stats-cards" style="display: none;">
-                <div class="stat-card">
-                    <i class="fas fa-list card-total"></i>
-                    <div class="stat-value" id="total-records">0</div>
-                    <div class="stat-label">总记录数</div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-tags card-categories"></i>
-                    <div class="stat-value" id="total-categories">0</div>
-                    <div class="stat-label">项目类别</div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-yen-sign card-amount"></i>
-                    <div class="stat-value" id="total-amount">0</div>
-                    <div class="stat-label">总成交金额(万元)</div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-handshake card-count"></i>
-                    <div class="stat-value" id="total-count">0</div>
-                    <div class="stat-label">总成交笔数</div>
-                </div>
-            </div>
-
             <div class="table-wrapper">
-                <table id="data-table">
-                    <thead>
-                        <tr>
+<table id="data-table">
+    <thead>
+        <tr>
                             <th><i class="fas fa-map-marker-alt"></i> 行政区划</th>
+                            <th><i class="fas fa-road"></i> 街道名称</th>
                             <th><i class="fas fa-tag"></i> 项目类别</th>
                             <th><i class="fas fa-yen-sign"></i> 成交金额(万元)</th>
                             <th><i class="fas fa-handshake"></i> 成交笔数</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-body">
+        </tr>
+    </thead>
+    <tbody id="table-body">
                         <tr>
                             <td colspan="4" class="loading">
                                 <i class="fas fa-spinner"></i>
                                 <div>正在加载数据...</div>
                             </td>
                         </tr>
-                    </tbody>
-                </table>
+    </tbody>
+</table>
             </div>
         </div>
     </div>
 
-    <script>
+<script>
         let socket = null;
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
@@ -462,7 +462,7 @@
             '610192': '国际港务区'
         };
 
-        document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
             connectWebSocket();
         });
 
@@ -471,15 +471,15 @@
             
             socket = new WebSocket('ws://localhost:3000');
 
-            socket.onopen = () => {
-                console.log('Connected to WebSocket server');
+    socket.onopen = () => {
+        console.log('Connected to WebSocket server');
                 updateConnectionStatus('connected', '数据库已连接');
                 reconnectAttempts = 0;
-            };
+    };
 
-            socket.onmessage = (event) => {
+    socket.onmessage = (event) => {
                 try {
-                    const data = JSON.parse(event.data);
+        const data = JSON.parse(event.data);
                     latestData = data;
                     if (!firstRenderDone) {
                         renderData(latestData);
@@ -496,15 +496,15 @@
                 } catch (error) {
                     console.error('Error parsing data:', error);
                 }
-            };
+    };
 
-            socket.onerror = (error) => {
-                console.error('WebSocket error:', error);
+    socket.onerror = (error) => {
+        console.error('WebSocket error:', error);
                 updateConnectionStatus('disconnected', '数据库连接错误');
-            };
+    };
 
-            socket.onclose = () => {
-                console.log('Disconnected from WebSocket server');
+    socket.onclose = () => {
+        console.log('Disconnected from WebSocket server');
                 updateConnectionStatus('disconnected', '数据库连接断开');
                 
                 if (reconnectAttempts < maxReconnectAttempts) {
@@ -539,7 +539,7 @@
 
         function updateRegionFilterOptions(data) {
             const select = document.getElementById('region-filter');
-            const regions = Array.from(new Set(data.map(row => (row['行政区划码'] || '').substring(0, 6)))).filter(r => r);
+            const regions = Array.from(new Set(data.map(row => (row['区代码'] || '').substring(0, 6)))).filter(r => r);
             regions.sort();
             select.innerHTML = '<option value="ALL">全部</option>' +
                 regions.map(region => {
@@ -553,12 +553,26 @@
             const select = document.getElementById('region-filter');
             currentRegion = select.value;
             filterAndRender();
+            //联动ECharts
+            if (window.myChart && typeof showDistrictStreets === 'function' && typeof returnToDistrictView === 'function') {
+                if (currentRegion === 'ALL') {
+                    if (window.currentView !== 'districts') {
+                        returnToDistrictView();
+                    }
+                } else {
+                    const regionMapReverse = Object.entries(regionMap).reduce((acc, [code, name]) => { acc[code] = name; return acc; }, {});
+                    const districtName = regionMap[currentRegion] || currentRegion;
+                    if (window.currentView !== 'streets' || window.selectedDistrict !== districtName) {
+                        showDistrictStreets(districtName);
+                    }
+                }
+            }
         }
 
         function filterAndRender() {
             let filtered = allData;
             if (currentRegion !== 'ALL') {
-                filtered = allData.filter(row => (row['行政区划码'] || '').substring(0, 6) === currentRegion);
+                filtered = allData.filter(row => (row['区代码'] || '').substring(0, 6) === currentRegion);
             }
             if (!filtered || filtered.length === 0) {
                 showNoData();
@@ -568,6 +582,7 @@
             updateStats(filtered);
             renderTable(filtered);
             mergeCells(document.getElementById('data-table'), 0);
+            mergeCells(document.getElementById('data-table'), 1); 
         }
 
         function updateStats(data) {
@@ -583,21 +598,27 @@
             document.getElementById('record-count').textContent = `${totalRecords} 条记录`;
         }
 
-        function renderTable(data) {
-            const tbody = document.getElementById('table-body');
+function renderTable(data) {
+    const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
 
             data.forEach((row, index) => {
-                const tr = document.createElement('tr');
+        const tr = document.createElement('tr');
                 tr.className = 'fade-in';
                 tr.style.animationDelay = `${index * 0.05}s`;
 
                 //行政区划
                 const td1 = document.createElement('td');
                 td1.className = 'region-cell';
-                const regionCode = (row['行政区划码'] || '').substring(0, 6);
+                const regionCode = (row['区代码'] || '').substring(0, 6);
                 td1.textContent = regionMap[regionCode] || regionCode || '--';
                 tr.appendChild(td1);
+
+                // 街道名称
+                const tdStreet = document.createElement('td');
+                tdStreet.className = 'region-cell';
+                tdStreet.textContent = row['街道'] || '--';
+                tr.appendChild(tdStreet);
 
                 //项目类别
                 const td2 = document.createElement('td');
@@ -618,9 +639,9 @@
                 td4.textContent = row['成交笔数'] || '0';
                 tr.appendChild(td4);
 
-                tbody.appendChild(tr);
-            });
-        }
+        tbody.appendChild(tr);
+    });
+}
 
         function showNoData() {
             const tbody = document.getElementById('table-body');
@@ -633,30 +654,30 @@
                 </tr>
             `;
             document.getElementById('stats-cards').style.display = 'none';
-        }
+}
 
-        function mergeCells(table, columnIndex) {
-            let lastRowContent = null;
-            let rowspanCount = 0;
+function mergeCells(table, columnIndex) {
+    let lastRowContent = null;
+    let rowspanCount = 0;
 
-            for (let i = 1; i < table.rows.length; i++) {
-                const currentCell = table.rows[i].cells[columnIndex];
-                if (lastRowContent === currentCell.textContent) {
-                    rowspanCount++;
-                    currentCell.style.display = 'none';
-                } else {
-                    if (rowspanCount > 0) {
-                        table.rows[i - rowspanCount - 1].cells[columnIndex].setAttribute('rowspan', rowspanCount + 1);
-                    }
-                    lastRowContent = currentCell.textContent;
-                    rowspanCount = 0;
-                }
-            }
-
+    for (let i = 1; i < table.rows.length; i++) {
+        const currentCell = table.rows[i].cells[columnIndex];
+        if (lastRowContent === currentCell.textContent) {
+            rowspanCount++;
+            currentCell.style.display = 'none';
+        } else {
             if (rowspanCount > 0) {
-                table.rows[table.rows.length - rowspanCount - 1].cells[columnIndex].setAttribute('rowspan', rowspanCount + 1);
+                table.rows[i - rowspanCount - 1].cells[columnIndex].setAttribute('rowspan', rowspanCount + 1);
             }
+            lastRowContent = currentCell.textContent;
+            rowspanCount = 0;
         }
+    }
+
+    if (rowspanCount > 0) {
+        table.rows[table.rows.length - rowspanCount - 1].cells[columnIndex].setAttribute('rowspan', rowspanCount + 1);
+    }
+}
 
         function refreshConnection() {
             if (socket) {
@@ -700,17 +721,28 @@
         let currentView = 'districts';
         let selectedDistrict = null;
         let districtOption = null;
-        // 事件绑定防抖
+
         function bindDistrictClick() {
             myChart.off('click');
             myChart.on('click', function(params) {
                 const districtName = params.name;
                 if (districtName && currentView === 'districts') {
                     showDistrictStreets(districtName);
+                    //下拉框和表格
+                    const select = document.getElementById('region-filter');
+                    if (select) {
+                        //反查区划码
+                        let code = Object.keys(regionMap).find(key => regionMap[key] === districtName);
+                        if (code) {
+                            select.value = code;
+                            currentRegion = code;
+                            filterAndRender();
+                        }
+                    }
                 }
             });
         }
-        // ECharts内置返回按钮（graphic实现）
+        //ECharts内置返回按钮（用graphic实现
         function setBackButton(show) {
             myChart.setOption({
                 graphic: show ? [{
@@ -899,14 +931,20 @@
                         }
                     ]
                 };
-                myChart.setOption(streetOption);
-                setBackButton(true);
+                myChart.setOption(streetOption, true);
+                setTimeout(() => {
+                    myChart.dispatchAction({
+                        type: 'restore'
+                    });
+                    setBackButton(true);
+                }, 10);
                 myChart.off('click'); 
             }
         }
         function returnToDistrictView() {
             currentView = 'districts';
             selectedDistrict = null;
+            //强制重建主视图option，彻底刷新ECharts状态
             const mapData = (allStreetData.filter(feature => feature.properties && feature.properties.区)
                 .map(feature => {
                     const districtName = feature.properties.区 || feature.properties.name || '其它';
@@ -958,8 +996,15 @@
             myChart.setOption(resetOption, true); 
             setBackButton(false);
             bindDistrictClick(); 
-        }
-    </script>
+            //联动下拉框和表格
+            const select = document.getElementById('region-filter');
+            if (select) {
+                select.value = 'ALL';
+                currentRegion = 'ALL';
+                filterAndRender();
+    }
+}
+</script>
 </body>
 </html>
 

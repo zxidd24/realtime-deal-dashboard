@@ -25,7 +25,8 @@ const server = app.listen(port, () => {
 const wss = new WebSocket.Server({ server });
 const table_show=`
 SELECT
-    left(sys_article.village_code,9) AS "行政区划码", 
+    left(sys_article.village_code,6) as "区代码",
+    sys_organization.name AS "街道",
     pt_pro_cq_type.name AS "项目类别", 
     sum(sys_article.amount) AS "成交金额",
     sum((SELECT count(pt_pro_tenders.pro_id) 
@@ -42,7 +43,7 @@ FROM
         FROM
             pt_pro_tenders
         WHERE
-            pt_pro_tenders.status <> 0
+            pt_pro_tenders.status <> 0 
         GROUP BY
             pt_pro_tenders.pro_id
     ) AS pt_pro_tenders
@@ -59,13 +60,28 @@ FROM
     ) AS pt_pro_cq_type
     ON 
         sys_article.pro_type = pt_pro_cq_type.code
+  left JOIN
+  (
+   SELECT 
+    sys_organization.code,sys_organization.name,sys_organization.pid
+   FROM
+    sys_organization
+   WHERE
+    (LENGTH(sys_organization.code)=9 or 
+    LENGTH(sys_organization.code)=6) AND
+    sys_organization.code like '6101%'
+  ) as sys_organization
+  ON
+   left(sys_article.village_code,9)=sys_organization.code
 WHERE
     sys_article.article_title LIKE '%成交公示' AND
-   left(sys_article.village_code,9) LIKE '6101%'   
+   sys_article.village_code like '6101%' 
 GROUP BY
+ left(sys_article.village_code,6) ,
  left(sys_article.village_code,9), 
+ sys_organization.name,
  pt_pro_cq_type.name
-    
+ ORDER BY left(sys_article.village_code,6)
 `;
 
 //创建临时表
