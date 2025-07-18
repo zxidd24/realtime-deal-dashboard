@@ -1,4 +1,4 @@
-# Realtime Deal Dashboard
+# 数据可视化展示平台 Realtime Deal Dashboard
 
 ## 项目简介
 
