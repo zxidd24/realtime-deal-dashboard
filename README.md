@@ -1,104 +1,163 @@
-# MySQL数据库管理
+# Realtime Deal Dashboard
 
-## 数据库信息
-- **主机**: localhost
-- **端口**: 3306
-- **用户名**: root
-- **密码**: Root@123456
+## 项目简介
 
-## 现有数据库
-- `cjgs` - 原有数据库
-- `my_database` - 新创建的数据库
+本项目为“西安城乡融合要素交易市场数据可视化展示平台”，实现了MySQL数据库大数据批量导入、表结构适配、数据可视化、前后端联动、自动化脚本、可视化地图联动等功能。支持通过WebSocket实时推送数据，前端页面美观现代，支持区域与街道多级联动筛选。
 
-## 使用方法
+---
 
-### 1. 连接数据库
-```bash
-mysql -u root -pRoot@123456
-```
+## 技术栈
 
-### 2. 查看所有数据库
-```sql
-SHOW DATABASES;
-```
+- **前端**：HTML5、CSS3、原生JavaScript、ECharts、Font Awesome
+- **后端**：Node.js、Express、WebSocket（ws）、MySQL2
+- **数据库**：MySQL 8.0+
+- **可视化**：ECharts（区县/街道地图联动高亮）
+- **自动化脚本**：Shell（备份、恢复、批量导入）
+- **可视化管理**：Sequel Ace
+- **版本管理**：Git、GitHub
 
-### 3. 使用特定数据库
-```sql
-USE my_database;
-```
+---
 
-### 4. 查看表
-```sql
-SHOW TABLES;
-```
+## 目录结构与文件说明
 
-### 5. 执行SQL文件
-使用提供的脚本：
-```bash
-./run_sql.sh [数据库名] [SQL文件路径]
-```
-
-示例：
-```bash
-# 执行基础示例
-./run_sql.sh my_database sql_files/example.sql
-
-# 执行测试数据
-./run_sql.sh my_database sql_files/test_data.sql
-
-# 执行模板文件
-./run_sql.sh my_database sql_files/template.sql
-```
-
-### 6. 直接执行SQL命令
-```bash
-mysql -u root -pRoot@123456 my_database -e "SELECT * FROM users;"
-```
-
-### 7. 使用Sequel Ace可视化管理
-1. 打开Sequel Ace应用
-2. 创建新连接：
-   - Host: 127.0.0.1
-   - Port: 3306
-   - Username: root
-   - Password: Root@123456
-   - Database: my_database
-3. 连接后可以：
-   - 查看表结构和数据
-   - 执行SQL查询
-   - 导入/导出数据
-   - 可视化编辑数据
-
-详细使用指南请查看 `Sequel_Ace_使用指南.md`
-
-## 文件结构
 ```
 Database/
-├── sql_files/          # SQL文件目录
-│   ├── example.sql     # 基础示例SQL文件
-│   ├── test_data.sql   # 测试数据SQL文件
-│   └── template.sql    # SQL文件模板
-├── sequel_ace_queries.sql  # Sequel Ace查询集合
-├── Sequel_Ace_使用指南.md   # Sequel Ace详细使用指南
-├── sequel_ace_connection.json # 连接配置
-├── run_sql.sh          # SQL执行脚本
-├── mysql-test2.js      # Node.js测试文件
-└── README.md           # 说明文档
+├── index-test2.html           # 前端主页面（数据大屏+地图+表格+联动）
+├── mysql-test2.js             # 后端服务（Node.js+WebSocket+MySQL）
+├── echarts/                   # ECharts地图及相关数据
+│   ├── index.html             # ECharts地图单页演示
+│   ├── main.js                # ECharts地图渲染逻辑
+│   └── Data/
+│       ├── 陕西街道.geojson   # 西安市区/街道GeoJSON地图数据
+│       └── 陕西街道.qmd       # 地图数据说明/辅助
+├── sql_files/                 # SQL建表、结构、数据、模板等
+│   ├── create_tables_structure.sql
+│   ├── update_sys_article_structure.sql
+│   ├── update_sys_organization_structure.sql
+│   ├── update_pt_pro_tenders_structure.sql
+│   ├── ...                    # 其他结构/数据/模板/测试SQL
+├── node_modules/              # Node.js依赖
+├── package.json               # Node.js依赖声明
+├── package-lock.json          # 依赖锁定
+├── backups/                   # 数据库备份文件夹
+│   └── my_database_backup_*.sql
+├── restore_database.sh        # 数据库恢复脚本
+├── backup_database.sh         # 数据库备份脚本
+├── run_sql.sh                 # 批量导入SQL脚本
+├── README.md                  # 项目说明文档（本文件）
+├── sequel_ace_queries.sql     # Sequel Ace常用SQL集合
+├── sequel_ace_connection.json # Sequel Ace连接配置示例
+├── .git/                      # Git版本管理
+├── .vscode/                   # VSCode开发配置
 ```
 
-## 注意事项
-- 密码在命令行中显示会有安全警告，这是正常的
-- 建议在生产环境中使用更安全的密码管理方式
-- SQL文件请放在 `sql_files/` 目录中
+---
 
-## 快速开始
-1. 复制 `sql_files/template.sql` 为您的SQL文件
-2. 修改SQL文件内容
-3. 使用 `./run_sql.sh my_database sql_files/your_file.sql` 执行
+## 主要功能
 
-## 数据库表结构
-当前 `my_database` 包含以下表：
-- `users` - 用户表
-- `products` - 产品表
-- `orders` - 订单表
-- `categories` - 分类表 
+- MySQL数据库批量导入、表结构自动适配、主键/字段冲突修复
+- 支持大体量SQL数据导入与清理
+- 后端定时（每小时）查询数据库，通过WebSocket推送数据
+- 前端页面美观，支持区域（区）筛选、街道联动高亮、表格/地图/统计卡片联动
+- ECharts地图支持区县下钻街道、返回、地图高亮、过渡动画
+- 自动化备份、恢复、批量导入脚本
+- Sequel Ace可视化管理与常用SQL
+- 完善的本地部署与开源支持
+
+---
+
+## 依赖安装
+
+1. 安装Node.js（建议v16+）和npm
+2. 安装MySQL 8.0+
+3. 安装依赖：
+   ```bash
+   npm install
+   ```
+
+---
+
+## 数据库配置与连接
+
+- 默认数据库名：`my_database`
+- 默认MySQL用户：`root`，密码：`Root@123456`
+- 连接配置在`mysql-test2.js`：
+  ```js
+  const db = mysql.createConnection({
+      host: 'localhost',
+      user: 'root',
+      password: 'Root@123456',
+      database: 'my_database'
+  });
+  ```
+- 如需修改数据库名、用户、密码，请同步修改`mysql-test2.js`和相关脚本
+
+---
+
+## 数据批量导入与表结构适配
+
+- 所有建表、结构、数据SQL均在`sql_files/`目录
+- 推荐使用`run_sql.sh`批量导入：
+  ```bash
+  bash run_sql.sh
+  ```
+- 可用`backup_database.sh`、`restore_database.sh`进行备份/恢复
+
+---
+
+## 启动后端服务
+
+```bash
+node mysql-test2.js
+```
+- 启动后会监听3000端口，WebSocket推送数据，Express静态服务支持前端页面访问
+
+---
+
+## 启动前端页面
+
+- 直接用浏览器打开`index-test2.html`，或访问：
+  ```
+  http://localhost:3000/index-test2.html
+  ```
+- 页面支持区域筛选、地图下钻、表格联动、统计卡片、手动刷新等
+
+---
+
+## ECharts地图说明
+
+- 地图数据位于`echarts/Data/陕西街道.geojson`
+- 支持区县下钻街道，街道高亮（有交易）、灰色（无交易）、返回动画、过渡动画
+- 右下角显示高亮街道数量与灰色区域说明
+
+---
+
+## Sequel Ace可视化管理
+
+- 推荐使用Sequel Ace连接数据库，`sequel_ace_connection.json`为连接示例
+- `sequel_ace_queries.sql`为常用SQL集合
+
+---
+
+## 本地部署与常见问题
+
+1. 克隆项目：
+   ```bash
+   git clone https://github.com/zxidd24/realtime-deal-dashboard.git
+   cd realtime-deal-dashboard
+   ```
+2. 安装依赖、导入数据库、启动服务（见上文）
+3. 如遇端口占用、依赖缺失、数据库连接失败等，请检查：
+   - MySQL服务是否启动
+   - 端口（默认3000）是否被占用
+   - 数据库名、用户、密码是否一致
+   - 依赖是否安装完整
+4. 地图不显示请检查`echarts/Data/陕西街道.geojson`是否存在
+
+
+---
+
+## 联系方式
+- 作者：张哲溪
+- 作者GitHub: [zxidd24](https://github.com/zxidd24)
+- 项目地址: https://github.com/zxidd24/realtime-deal-dashboard 

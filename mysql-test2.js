@@ -90,24 +90,39 @@ GROUP BY
 wss.on('connection', (ws) => {
     console.log('Client connected');
 
-    // 定义SQL查询语句
-    setInterval(() => {
+    // 首次连接立即推送一次
+    db.query(table_show, (err, results) => {
+        if (err) {
+            console.log("Query failed", err.message);
+            return;
+        }
+        console.log('首次推送SQL查询成功，返回记录数:', results.length);
+        const now = new Date();
+        const next = new Date(now.getTime() + 60 * 60 * 1000);
+        const pad = n => n.toString().padStart(2, '0');
+        console.log(`下次推送时间为: ${pad(next.getHours())}:${pad(next.getMinutes())}:${pad(next.getSeconds())}`);
+        ws.send(JSON.stringify(results));
+    });
+
+    // 后续定时推送
+    const timer = setInterval(() => {
         db.query(table_show, (err, results) => {
             if (err) {
                 console.log("Query failed", err.message);
                 return;
             }
-            console.log('SQL查询成功，返回记录数:', results.length);
+            console.log('定时SQL查询成功，返回记录数:', results.length);
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify(results));
                 }
             });
         });
-    }, 5000);
+    }, 60 * 60 * 1000);
 
     ws.on('close', () => {
         console.log('Client disconnected');
+        clearInterval(timer); 
     });
 });
 

@@ -163,7 +163,7 @@
         .amount-cell {
             font-weight: 600;
             color: #28a745;
-            text-align: right;
+            text-align: left;
         }
 
         .count-cell {
@@ -180,6 +180,11 @@
         .region-cell {
             font-weight: 500;
             color: #6c757d;
+            text-align: center;
+        }
+        
+        .table-wrapper td:nth-child(2) {
+            text-align: left;
         }
 
         .loading {
@@ -349,7 +354,7 @@
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-chart-line"></i> 西安城乡融合要素交易市场</h1>
-            <p>数据可视化展示平台，实时监控成交数据统计</p>
+            <p>数据可视化展示平台</p>
         </div>
 
         <div class="status-bar">
@@ -402,8 +407,14 @@
                 <div class="stat-label">总成交笔数</div>
             </div>
         </div>
-        <div class="echarts-card">
+        <div class="echarts-card" style="position: relative;">
             <div id="echarts-map"></div>
+            <div id="highlight-counter" style="display:none;position:absolute;right:32px;bottom:80px;z-index:1100;background:rgba(255,255,255,0.9);border-radius:8px;padding:8px 16px;font-size:14px;font-weight:bold;box-shadow:0 2px 6px rgba(0,0,0,0.06);color:#e67e22;">
+                存在交易的街道数量为：<span id="highlight-count">0</span>
+            </div>
+            <div id="legend-note" style="display:none;position:absolute;right:32px;bottom:32px;z-index:1100;background:rgba(255,255,255,0.9);border-radius:8px;padding:8px 16px;font-size:14px;color:#666;box-shadow:0 2px 6px rgba(0,0,0,0.06);">
+                - 灰色部分为未涉及交易的区域
+            </div>
         </div>
 
         <div class="table-container">
@@ -438,8 +449,6 @@
         let allData = [];
         let currentRegion = 'ALL';
         let latestData = [];
-        let refreshTimer = null;
-        const REFRESH_INTERVAL = 10000; 
         let firstRenderDone = false;
 
         //行政区划码与区县名称映射
@@ -486,12 +495,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         updateLastUpdate();
                         firstRenderDone = true;
                         
-                        refreshTimer = setInterval(() => {
-                            if (latestData && latestData.length > 0) {
-                                renderData(latestData);
-                                updateLastUpdate();
-                            }
-                        }, REFRESH_INTERVAL);
                     }
                 } catch (error) {
                     console.error('Error parsing data:', error);
@@ -683,9 +686,6 @@ function mergeCells(table, columnIndex) {
             if (socket) {
                 socket.close();
             }
-            if (refreshTimer) {
-                clearInterval(refreshTimer);
-            }
             firstRenderDone = false;
             reconnectAttempts = 0;
             connectWebSocket();
@@ -742,41 +742,53 @@ function mergeCells(table, columnIndex) {
                 }
             });
         }
-        //ECharts内置返回按钮（用graphic实现
+        //ECharts内置返回按钮（用graphic实现）
         function setBackButton(show) {
             myChart.setOption({
                 graphic: show ? [{
                     type: 'group',
                     left: 32,
                     top: 32,
-                    z: 100,
+                    z: 1000,
                     children: [
                         {
                             type: 'rect',
-                            shape: { width: 90, height: 36, r: 18 },
+                            shape: { width: 80, height: 29, r: 8 },
                             style: {
-                                fill: '#fff',
-                                shadowBlur: 8,
-                                shadowColor: 'rgba(2,136,209,0.10)',
+                                fill: 'rgba(255,255,255,0.9)',
+                                shadowBlur: 6,
+                                shadowColor: 'rgba(0,0,0,0.06)',
                                 cursor: 'pointer',
-                                stroke: '#eee',
-                            }
+                                stroke: 'transparent',
+                                lineWidth: 0
+                            },
+                            onclick: function() { returnToDistrictView(); }
                         },
                         {
                             type: 'text',
-                            left: 36,
+                            left: 14,
                             top: 8,
                             style: {
-                                text: '\u25C0 返回',
-                                font: 'bold 16px \\"Segoe UI\\", \\"微软雅黑\\", Arial',
-                                fill: '#0288d1',
+                                text: '\u25C0',
+                                font: 'bold 14px "Segoe UI", "微软雅黑", Arial',
+                                fill: '#e67e22',
                                 cursor: 'pointer',
-                            }
+                            },
+                            onclick: function() { returnToDistrictView(); }
+                        },
+                        {
+                            type: 'text',
+                            left: 30,
+                            top: 8,
+                            style: {
+                                text: '返回',
+                                font: 'bold 14px "Segoe UI", "微软雅黑", Arial',
+                                fill: '#666',
+                                cursor: 'pointer',
+                            },
+                            onclick: function() { returnToDistrictView(); }
                         }
-                    ],
-                    onclick: function() {
-                        returnToDistrictView();
-                    }
+                    ]
                 }] : []
             });
         }
@@ -851,7 +863,7 @@ function mergeCells(table, columnIndex) {
                 bindDistrictClick();
             });
         function showDistrictStreets(districtName) {
-            const streetsInDistrict = allStreetData.filter(feature =>
+            const streetsInDistrict = allStreetData.filter(feature => 
                 feature.properties && feature.properties.区 === districtName
             );
             if (streetsInDistrict.length > 0) {
@@ -867,17 +879,41 @@ function mergeCells(table, columnIndex) {
                     }
                 });
                 echarts.registerMap('street_detail', streetGeoJson);
+
+                // 1. 获取当前表格数据中有交易的街道名
+                let filterRegion = currentRegion;
+                // 若是通过点击地图进入，currentRegion 可能还没切换，需用districtName反查区划码
+                if (!filterRegion || filterRegion === 'ALL') {
+                    // 反查区划码
+                    filterRegion = Object.keys(regionMap).find(key => regionMap[key] === districtName) || '';
+                }
+                const tradedStreets = new Set(
+                    allData
+                        .filter(row => (row['区代码'] || '').substring(0, 6) === filterRegion)
+                        .map(row => row['街道'])
+                        .filter(Boolean)
+                );
+                // 显示高亮计数器
+                document.getElementById('highlight-counter').style.display = 'block';
+                document.getElementById('highlight-count').textContent = tradedStreets.size;
+                // 显示图例说明
+                document.getElementById('legend-note').style.display = 'block';
+
+                // 2. 生成街道数据，区分高亮与灰色
                 const streetData = streetsInDistrict.map(feature => {
+                    const name = feature.properties.Name || '未知街道';
+                    const hasTrade = tradedStreets.has(name);
                     return {
-                        name: feature.properties.Name || '未知街道',
+                        name,
                         value: 1,
                         itemStyle: {
-                            areaColor: '#cccccc',
+                            areaColor: hasTrade ? '#f5b97f' : '#e0e0e0',
                             borderColor: '#fff',
                             borderWidth: 1
                         }
                     };
                 });
+
                 var streetOption = {
                     backgroundColor: '#f7f9fa',
                     title: {
@@ -1003,6 +1039,10 @@ function mergeCells(table, columnIndex) {
                 currentRegion = 'ALL';
                 filterAndRender();
     }
+    // 隐藏高亮计数器
+    document.getElementById('highlight-counter').style.display = 'none';
+    // 隐藏图例说明
+    document.getElementById('legend-note').style.display = 'none';
 }
 </script>
 </body>
