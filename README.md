@@ -130,8 +130,7 @@ node mysql-test2.js
 ---
 
 ## Sequel Ace可视化管理
-
-- 开发时使用的辅助软件，仅用于提高我对数据库内容的了解，可使用其他类似软件或忽略
+### 开发时使用的数据库可视化软件，仅用于提高我对数据库内容的了解，可使用其他类似软件或忽略
 - `sequel_ace_connection.json`为连接示例
 - `sequel_ace_queries.sql`为常用SQL集合
 
