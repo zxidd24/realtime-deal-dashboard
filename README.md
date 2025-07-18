@@ -2,7 +2,7 @@
 
 ## 项目简介
 
-本项目为“西安城乡融合要素交易市场数据可视化展示平台”，实现了MySQL数据库大数据批量导入、表结构适配、数据可视化、前后端联动、自动化脚本、可视化地图联动等功能。支持通过WebSocket实时推送数据，前端页面美观现代，支持区域与街道多级联动筛选。
+本项目为“西安城乡融合要素交易市场数据可视化展示平台”，实现了MySQL数据库大数据批量导入、表结构适配、数据可视化、前后端联动、自动化脚本、可视化地图联动等功能。支持通过WebSocket实时推送数据，支持区域与街道多级联动筛选。
 
 ---
 
@@ -11,7 +11,7 @@
 - **前端**：HTML5、CSS3、原生JavaScript、ECharts、Font Awesome
 - **后端**：Node.js、Express、WebSocket（ws）、MySQL2
 - **数据库**：MySQL 8.0+
-- **可视化**：ECharts（区县/街道地图联动高亮）
+- **可视化**：ECharts（区县/街道地图联动与高亮等）
 - **自动化脚本**：Shell（备份、恢复、批量导入）
 - **可视化管理**：Sequel Ace
 - **版本管理**：Git、GitHub
@@ -30,7 +30,7 @@ Database/
 │   └── Data/
 │       ├── 陕西街道.geojson   # 西安市区/街道GeoJSON地图数据
 │       └── 陕西街道.qmd       # 地图数据说明/辅助
-├── sql_files/                 # SQL建表、结构、数据、模板等
+├── sql_files/                 # SQL建表、结构、数据、测试等（本地部署时可以删除）
 │   ├── create_tables_structure.sql
 │   ├── update_sys_article_structure.sql
 │   ├── update_sys_organization_structure.sql
@@ -58,10 +58,9 @@ Database/
 - MySQL数据库批量导入、表结构自动适配、主键/字段冲突修复
 - 支持大体量SQL数据导入与清理
 - 后端定时（每小时）查询数据库，通过WebSocket推送数据
-- 前端页面美观，支持区域（区）筛选、街道联动高亮、表格/地图/统计卡片联动
-- ECharts地图支持区县下钻街道、返回、地图高亮、过渡动画
+- 前端页面美观简洁易读，支持区域（区）筛选、街道联动高亮、表格/地图/统计卡片联动等
+- ECharts地图支持区县下钻街道、返回、地图高亮等，提高易读性
 - 自动化备份、恢复、批量导入脚本
-- Sequel Ace可视化管理与常用SQL
 - 完善的本地部署与开源支持
 
 ---
@@ -120,21 +119,20 @@ node mysql-test2.js
   ```
   http://localhost:3000/index-test2.html
   ```
-- 页面支持区域筛选、地图下钻、表格联动、统计卡片、手动刷新等
-
 ---
 
 ## ECharts地图说明
 
 - 地图数据位于`echarts/Data/陕西街道.geojson`
-- 支持区县下钻街道，街道高亮（有交易）、灰色（无交易）、返回动画、过渡动画
+- 支持区县下钻街道，街道高亮（有交易）、灰色（无交易）等
 - 右下角显示高亮街道数量与灰色区域说明
 
 ---
 
 ## Sequel Ace可视化管理
 
-- 推荐使用Sequel Ace连接数据库，`sequel_ace_connection.json`为连接示例
+- 开发时使用的辅助软件，仅用于提高我对数据库内容的了解，可使用其他类似软件或忽略
+- `sequel_ace_connection.json`为连接示例
 - `sequel_ace_queries.sql`为常用SQL集合
 
 ---
@@ -159,5 +157,6 @@ node mysql-test2.js
 
 ## 联系方式
 - 作者：张哲溪
+- 作者邮箱：z1124340034@sina.com
 - 作者GitHub: [zxidd24](https://github.com/zxidd24)
 - 项目地址: https://github.com/zxidd24/realtime-deal-dashboard 
