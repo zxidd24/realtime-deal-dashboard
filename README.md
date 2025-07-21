@@ -22,7 +22,7 @@
 
 ```
 Database/
-├── index-test2.html           # 前端主页面（数据大屏+地图+表格+联动）
+├── index-test2.html           # 前端主页面（数据大屏+地图+表格+与Echarts图联动）
 ├── mysql-test2.js             # 后端服务（Node.js+WebSocket+MySQL）
 ├── echarts/                   # ECharts地图及相关数据
 │   ├── index.html             # ECharts地图单页演示
