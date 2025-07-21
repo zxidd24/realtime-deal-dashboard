@@ -488,11 +488,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     socket.onmessage = (event) => {
                 try {
-        const data = JSON.parse(event.data);
+        const payload = JSON.parse(event.data);
+                    // 兼容老数据结构
+                    const data = payload.data || payload;
                     latestData = data;
                     if (!firstRenderDone) {
                         renderData(latestData);
-                        updateLastUpdate();
+                        //显示数据库连接时间
+                        if (payload.dbConnectTime) {
+                            updateLastUpdate(new Date(payload.dbConnectTime));
+                        }
                         firstRenderDone = true;
                         
                     }
@@ -528,8 +533,8 @@ document.addEventListener('DOMContentLoaded', function() {
             textElement.textContent = text;
         }
 
-        function updateLastUpdate() {
-            const now = new Date();
+        function updateLastUpdate(time) {
+            const now = time || new Date();
             const month = now.getMonth() + 1;
             const day = now.getDate();
             const timeString = now.toLocaleTimeString('zh-CN');

@@ -84,45 +84,55 @@ GROUP BY
  ORDER BY left(sys_article.village_code,6)
 `;
 
-//创建临时表
+const dbConnectTime = new Date(); // 记录数据库连接时间
+let cachedResults = null; // 缓存数据
 
-
-wss.on('connection', (ws) => {
-    console.log('Client connected');
-
-    // 首次连接立即推送一次
+// 服务器启动时立即查询一次数据并缓存
+function fetchAndCacheDataAndPush() {
     db.query(table_show, (err, results) => {
         if (err) {
             console.log("Query failed", err.message);
             return;
         }
-        console.log('首次推送SQL查询成功，返回记录数:', results.length);
+        cachedResults = results;
+        console.log('定时/首次SQL查询成功，缓存记录数:', results.length);
+        //输出下次推送时间
         const now = new Date();
         const next = new Date(now.getTime() + 60 * 60 * 1000);
         const pad = n => n.toString().padStart(2, '0');
         console.log(`下次推送时间为: ${pad(next.getHours())}:${pad(next.getMinutes())}:${pad(next.getSeconds())}`);
-        ws.send(JSON.stringify(results));
-    });
-
-    // 后续定时推送
-    const timer = setInterval(() => {
-        db.query(table_show, (err, results) => {
-            if (err) {
-                console.log("Query failed", err.message);
-                return;
+        //推送时带上数据库连接时间
+        const payload = {
+            data: results,
+            dbConnectTime: dbConnectTime.toISOString()
+        };
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify(payload));
             }
-            console.log('定时SQL查询成功，返回记录数:', results.length);
-            wss.clients.forEach((client) => {
-                if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify(results));
-                }
-            });
         });
-    }, 60 * 60 * 1000);
+    });
+}
 
+// 启动时立即拉取一次
+fetchAndCacheDataAndPush();
+
+// 定时推送（每小时）
+setInterval(fetchAndCacheDataAndPush, 60 * 60 * 1000);
+
+wss.on('connection', (ws) => {
+    console.log('Client connected');
+    // 新连接只推送缓存数据
+    if (cachedResults) {
+        // 推送时带上数据库连接时间
+        const payload = {
+            data: cachedResults,
+            dbConnectTime: dbConnectTime.toISOString()
+        };
+        ws.send(JSON.stringify(payload));
+    }
     ws.on('close', () => {
         console.log('Client disconnected');
-        clearInterval(timer); 
     });
 });
 
