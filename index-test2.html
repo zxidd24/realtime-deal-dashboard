@@ -410,7 +410,7 @@
         <div class="echarts-card" style="position: relative;">
             <div id="echarts-map"></div>
             <div id="highlight-counter" style="display:none;position:absolute;right:32px;bottom:80px;z-index:1100;background:rgba(255,255,255,0.9);border-radius:8px;padding:8px 16px;font-size:14px;font-weight:bold;box-shadow:0 2px 6px rgba(0,0,0,0.06);color:#e67e22;">
-                存在交易的街道数量为：<span id="highlight-count">0</span>
+                - 存在交易的街道数量为：<span id="highlight-count">0</span>
             </div>
             <div id="legend-note" style="display:none;position:absolute;right:32px;bottom:32px;z-index:1100;background:rgba(255,255,255,0.9);border-radius:8px;padding:8px 16px;font-size:14px;color:#666;box-shadow:0 2px 6px rgba(0,0,0,0.06);">
                 - 灰色部分为未涉及交易的区域
@@ -530,8 +530,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function updateLastUpdate() {
             const now = new Date();
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
             const timeString = now.toLocaleTimeString('zh-CN');
-            document.getElementById('last-update').textContent = `最后更新: ${timeString}`;
+            document.getElementById('last-update').textContent = `更新时间: ${month}月${day}日 ${timeString}`;
         }
 
         function renderData(data) {
