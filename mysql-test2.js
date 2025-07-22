@@ -84,10 +84,10 @@ GROUP BY
  ORDER BY left(sys_article.village_code,6)
 `;
 
-const dbConnectTime = new Date(); // 记录数据库连接时间
-let cachedResults = null; // 缓存数据
+const dbConnectTime = new Date(); //记录数据库连接时间
+let cachedResults = null; //缓存数据
 
-// 服务器启动时立即查询一次数据并缓存
+//服务器启动时立即查询一次数据并缓存
 function fetchAndCacheDataAndPush() {
     db.query(table_show, (err, results) => {
         if (err) {
@@ -114,17 +114,17 @@ function fetchAndCacheDataAndPush() {
     });
 }
 
-// 启动时立即拉取一次
+//启动时立即拉取一次
 fetchAndCacheDataAndPush();
 
-// 定时推送（每小时）
+//每小时定时推送
 setInterval(fetchAndCacheDataAndPush, 60 * 60 * 1000);
 
 wss.on('connection', (ws) => {
     console.log('Client connected');
-    // 新连接只推送缓存数据
+    //新的连接只推送缓存数据
     if (cachedResults) {
-        // 推送时带上数据库连接时间
+        //推送时附数据库连接时间
         const payload = {
             data: cachedResults,
             dbConnectTime: dbConnectTime.toISOString()
