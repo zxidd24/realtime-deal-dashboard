@@ -541,7 +541,7 @@ function mergeCells(table, columnIndex) {
             myChart.on('click', function(params) {
                 const districtName = params.name;
                 if (districtName && currentView === 'districts') {
-                    showDistrictStreets(districtName);
+                    showDistrictStreets(districtName);//下钻
                     //下拉框和表格
                     const select = document.getElementById('region-filter');
                     if (select) {
@@ -696,7 +696,7 @@ function mergeCells(table, columnIndex) {
 
                 //获取当前表格数据中有交易的街道名
                 let filterRegion = currentRegion;
-                //若是通过点击地图进入，currentRegion 可能还没切换，需用districtName反查区划码
+                //若通过点击地图进入，currentRegion可能还没切换，需用districtName反查区划码
                 if (!filterRegion || filterRegion === 'ALL') {
                     //反查区划码
                     filterRegion = Object.keys(regionMap).find(key => regionMap[key] === districtName) || '';
