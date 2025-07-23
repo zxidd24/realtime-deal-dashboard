@@ -86,6 +86,7 @@ GROUP BY
 
 const dbConnectTime = new Date(); //记录数据库连接时间
 let cachedResults = null; //缓存数据
+let lastPushTime = null; //缓存上一次推送时间
 
 //服务器启动时立即查询一次数据并缓存
 function fetchAndCacheDataAndPush() {
@@ -95,16 +96,17 @@ function fetchAndCacheDataAndPush() {
             return;
         }
         cachedResults = results;
+        lastPushTime = new Date();
         console.log('定时/首次SQL查询成功，缓存记录数:', results.length);
         //输出下次推送时间
         const now = new Date();
         const next = new Date(now.getTime() + 60 * 60 * 1000);
         const pad = n => n.toString().padStart(2, '0');
         console.log(`下次推送时间为: ${pad(next.getHours())}:${pad(next.getMinutes())}:${pad(next.getSeconds())}`);
-        //推送时带上数据库连接时间
+        //推送时带上上一次推送时间
         const payload = {
             data: results,
-            dbConnectTime: dbConnectTime.toISOString()
+            dbConnectTime: lastPushTime.toISOString()
         };
         wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
@@ -123,11 +125,11 @@ setInterval(fetchAndCacheDataAndPush, 60 * 60 * 1000);
 wss.on('connection', (ws) => {
     console.log('Client connected');
     //新的连接只推送缓存数据
-    if (cachedResults) {
-        //推送时附数据库连接时间
+    if (cachedResults && lastPushTime) {
+        //推送时附上一次推送时间
         const payload = {
             data: cachedResults,
-            dbConnectTime: dbConnectTime.toISOString()
+            dbConnectTime: lastPushTime.toISOString()
         };
         ws.send(JSON.stringify(payload));
     }
