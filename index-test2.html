@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        /* 页面主样式 */
+        /* 主页面样式 */
         * {
             margin: 0;
             padding: 0;
@@ -511,7 +511,7 @@ function mergeCells(table, columnIndex) {
                 '新城区': '#4ECDC4',
                 '碑林区': '#45B7D1',
                 '莲湖区': '#96CEB4',
-                '灞桥区': '#FFEAA7',
+                '灞桥区': '#FF6B6B',
                 '未央区': '#DDA0DD',
                 '雁塔区': '#98D8C8',
                 '阎良区': '#F7DC6F',
@@ -541,7 +541,7 @@ function mergeCells(table, columnIndex) {
             myChart.on('click', function(params) {
                 const districtName = params.name;
                 if (districtName && currentView === 'districts') {
-                    //showDistrictStreets(districtName);//下钻
+                    showDistrictStreets(districtName);//下钻
                     //下拉框和表格
                     const select = document.getElementById('region-filter');
                     if (select) {
